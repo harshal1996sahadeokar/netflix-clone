@@ -1,0 +1,20 @@
+# Use Node.js for building React frontend
+FROM node:16 AS build
+
+# Set working directory
+WORKDIR /app
+
+# Copy the necessary files
+COPY package.json yarn.lock ./
+RUN yarn install
+
+COPY . .
+
+# Build the React app
+RUN yarn build
+
+# Serve the built app using Nginx
+FROM nginx:alpine
+COPY --from=build /app/build /usr/share/nginx/html
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
