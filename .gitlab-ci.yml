@@ -1,0 +1,26 @@
+stages:
+  - build
+  - test
+  - deploy
+
+# Build stage: Dockerize the application
+build_app:
+  stage: build
+  script:
+    - docker build -t $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA -f Dockerfile.backend .
+    - docker build -t $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA -f Dockerfile.frontend .
+    - docker push $CI_REGISTRY_IMAGE/backend:$CI_COMMIT_SHORT_SHA
+    - docker push $CI_REGISTRY_IMAGE/frontend:$CI_COMMIT_SHORT_SHA
+
+# Test stage: Run unit tests
+test_app:
+  stage: test
+  script:
+    - npm run test
+
+# Deploy stage: Deploy to AWS ECS or EC2
+deploy_app:
+  stage: deploy
+  script:
+    - aws ecs update-service --cluster netflix-clone --service backend-service --force-new-deployment
+    - aws ecs update-service --cluster netflix-clone --service frontend-service --force-new-deployment
